@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"Vservice/dbmodel"
+	"Vservice/internal/dbmodel"
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -67,7 +67,7 @@ func (r *Repo) InsertData(ctx context.Context) error {
 func (r *Repo) UpdateData(ctx context.Context, id int, title, author *pgtype.Text, num_pages *pgtype.Int4, rating *pgtype.Float4) error {
 
 	querySelect := `
-	SELECT (title, author, num_pages, rating) FROM books
+	SELECT title, author, num_pages, rating FROM books
 	WHERE id = $1;
 	`
 	queryUpdate := `
@@ -76,7 +76,7 @@ func (r *Repo) UpdateData(ctx context.Context, id int, title, author *pgtype.Tex
 	author = $2,
 	num_pages = $3,
 	rating = $4
-	WHERE id = $5
+	WHERE id = $5;
 	`
 
 	var bookDB dbmodel.Book

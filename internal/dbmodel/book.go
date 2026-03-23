@@ -2,7 +2,7 @@ package dbmodel
 
 import "github.com/jackc/pgx/v5/pgtype"
 
-type Book struct {
+type BookDB struct {
 	ID       int
 	Title    pgtype.Text
 	Author   pgtype.Text
