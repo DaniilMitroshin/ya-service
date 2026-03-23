@@ -49,6 +49,7 @@ func (r *Repo) InsertData(ctx context.Context) error {
 		{"book2", "author2", 250, 4.44},
 		{"book3", "author3", 350, 1.44},
 		{"book4", "author4", 444, 2.44},
+		{nil, "author5", nil, nil},
 	}
 
 	for _, vals := range data {
@@ -58,5 +59,5 @@ func (r *Repo) InsertData(ctx context.Context) error {
 		}
 
 	}
-
+	return nil
 }
