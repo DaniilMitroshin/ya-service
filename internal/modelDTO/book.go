@@ -1,11 +1,11 @@
 package modelDTO
 
-//func Optional[T any](val *T, isValid bool){}
+import "Vservice/internal/shared"
 
 type BookUpdateDTO struct {
 	Id       int
-	Title    Optional[string]
-	Author   Optional[string]
-	NumPages Optional[int]
-	Rating   Optional[float32]
+	Title    shared.Optional[string]
+	Author   shared.Optional[string]
+	NumPages shared.Optional[int]
+	Rating   shared.Optional[float32]
 }

@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"Vservice/internal/dbmodel"
+	"Vservice/internal/repository/dbmodel"
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	//"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -64,10 +64,10 @@ func (r *Repo) InsertData(ctx context.Context) error {
 	return nil
 }
 
-func (r *Repo) UpdateData(ctx context.Context, id int, title, author *pgtype.Text, num_pages *pgtype.Int4, rating *pgtype.Float4) error {
+func (r *Repo) UpdateData_tx(ctx context.Context, bookUpdateParams dbmodel.BookUpdateParams) error {
 
 	querySelect := `
-	SELECT title, author, num_pages, rating FROM books
+	SELECT id, title, author, num_pages, rating FROM books
 	WHERE id = $1;
 	`
 	queryUpdate := `
@@ -79,16 +79,19 @@ func (r *Repo) UpdateData(ctx context.Context, id int, title, author *pgtype.Tex
 	WHERE id = $5;
 	`
 
-	var bookDB dbmodel.Book
+	var bookDB dbmodel.BookDB
 
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
 
-	err = tx.QueryRow(ctx, querySelect, id).Scan(
+	err = tx.QueryRow(ctx, querySelect, bookUpdateParams.Id).Scan(
+		&bookDB.ID,
 		&bookDB.Title,
 		&bookDB.Author,
 		&bookDB.NumPages,
@@ -97,23 +100,48 @@ func (r *Repo) UpdateData(ctx context.Context, id int, title, author *pgtype.Tex
 		return err
 	}
 
-	if title != nil {
-		bookDB.Title = *title
+	if bookUpdateParams.Title.IsSet() {
+		if bookUpdateParams.Title.Value != nil {
+			bookDB.Title.Valid = true
+			bookDB.Title.String = *bookUpdateParams.Title.Ptr()
+		} else {
+			bookDB.Title.Valid = false
+		}
 	}
-	if author != nil {
-		bookDB.Author = *author
+
+	if bookUpdateParams.Author.IsSet() {
+		if bookUpdateParams.Author.Value != nil {
+			bookDB.Author.Valid = true
+			bookDB.Author.String = *bookUpdateParams.Author.Ptr()
+		} else {
+			bookDB.Author.Valid = false
+		}
 	}
-	if num_pages != nil {
-		bookDB.NumPages = *num_pages
+
+	if bookUpdateParams.NumPages.IsSet() {
+		if bookUpdateParams.NumPages.Value != nil {
+			bookDB.NumPages.Valid = true
+			bookDB.NumPages.Int32 = int32(*bookUpdateParams.NumPages.Ptr())
+		} else {
+			bookDB.NumPages.Valid = false
+		}
 	}
-	if rating != nil {
-		bookDB.Rating = *rating
+
+	if bookUpdateParams.Rating.IsSet() {
+		if bookUpdateParams.Rating.Value != nil {
+			bookDB.Rating.Valid = true
+			bookDB.Rating.Float32 = float32(*bookUpdateParams.Rating.Ptr())
+		} else {
+			bookDB.Rating.Valid = false
+		}
 	}
 
 	_, err = tx.Exec(ctx, queryUpdate, bookDB.Title, bookDB.Author, bookDB.NumPages, bookDB.Rating, bookDB.ID)
 	if err != nil {
 		return err
 	}
-	tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
 	return nil
 }
