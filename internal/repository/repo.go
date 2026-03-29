@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"Vservice/internal/domain"
 	"Vservice/internal/repository/dbmodel"
 	"context"
 
@@ -26,7 +27,7 @@ func (r *Repo) CreateTable(ctx context.Context) error {
 		title text,
 		author text,
 		num_pages integer,
-		rating real
+		rating double precision 
 		);
 	`
 	_, err := r.pool.Exec(ctx, query)
@@ -64,6 +65,26 @@ func (r *Repo) InsertData(ctx context.Context) error {
 	return nil
 }
 
+func (r *Repo) SelectById(ctx context.Context, id int) (*domain.Book, error) {
+	query := `
+	SELECT * from books WHERE id = $1
+	`
+	var book domain.Book
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&book.Id,
+		&book.Title,
+		&book.Author,
+		&book.NumPages,
+		&book.Rating)
+	if err != nil {
+		return nil, err
+	}
+	return &book, nil
+}
+
+// update через case
+// dinamic sql query builder - делать sql запрос конкатенацией и тп
+// через 1 query - всегда update books set ....
 func (r *Repo) UpdateData_tx(ctx context.Context, bookUpdateParams dbmodel.BookUpdateParams) error {
 
 	querySelect := `
@@ -121,7 +142,7 @@ func (r *Repo) UpdateData_tx(ctx context.Context, bookUpdateParams dbmodel.BookU
 	if bookUpdateParams.NumPages.IsSet() {
 		if bookUpdateParams.NumPages.Value != nil {
 			bookDB.NumPages.Valid = true
-			bookDB.NumPages.Int32 = int32(*bookUpdateParams.NumPages.Ptr())
+			bookDB.NumPages.Int64 = int64(*bookUpdateParams.NumPages.Ptr())
 		} else {
 			bookDB.NumPages.Valid = false
 		}
@@ -130,7 +151,7 @@ func (r *Repo) UpdateData_tx(ctx context.Context, bookUpdateParams dbmodel.BookU
 	if bookUpdateParams.Rating.IsSet() {
 		if bookUpdateParams.Rating.Value != nil {
 			bookDB.Rating.Valid = true
-			bookDB.Rating.Float32 = float32(*bookUpdateParams.Rating.Ptr())
+			bookDB.Rating.Float64 = float64(*bookUpdateParams.Rating.Ptr())
 		} else {
 			bookDB.Rating.Valid = false
 		}
