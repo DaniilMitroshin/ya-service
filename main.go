@@ -2,8 +2,6 @@ package main
 
 import (
 	"Vservice/internal/repository"
-	"Vservice/internal/repository/dbmodel"
-	"Vservice/internal/shared"
 	"context"
 	"fmt"
 	"time"
@@ -28,17 +26,17 @@ func main() {
 	repo := repository.NewRepo(pool)
 
 	//hhtp recieved
-	/*
-		ctxCreate, cancel := context.WithTimeout(context.Background(), time.Second*5)
-		repo.CreateTable(ctxCreate)
+	/* create and fill
+	ctxCreate, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	repo.CreateTable(ctxCreate)
 
-		//http recieved
-		ctxInsert, cancel := context.WithTimeout(context.Background(), time.Second*5)
-		repo.InsertData(ctxInsert)
+	//http recieved
+	ctxInsert, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	repo.InsertData(ctxInsert)
 	*/
 
 	//http recieved
-
+	/*update
 	bookUpdateParams := dbmodel.BookUpdateParams{
 		Id:       1,
 		Title:    shared.Some("New title"),
@@ -48,6 +46,14 @@ func main() {
 	}
 	ctxUpdate, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	repo.UpdateData_tx(ctxUpdate, bookUpdateParams)
+	*/
+	ctxGet, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	res, err := repo.SelectById(ctxGet, 1)
+	if err != nil {
+		fmt.Print(err)
+	} else {
+		fmt.Print(res)
+	}
 
 	fmt.Println("ended")
 }
