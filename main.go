@@ -4,6 +4,7 @@ import (
 	"Vservice/internal/repository"
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,7 +13,8 @@ import (
 func main() {
 	fmt.Println("started")
 
-	ConnString := "postgres://postgres:daniil@localhost:5432/postgres"
+	ConnString := os.Getenv("CONN_STRING")
+	fmt.Println(ConnString)
 	//"postgres://postgres:1234@localhost:5432/testdb"
 
 	ctxPool, cancel := context.WithCancel(context.Background())
@@ -47,12 +49,19 @@ func main() {
 	ctxUpdate, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	repo.UpdateData_tx(ctxUpdate, bookUpdateParams)
 	*/
-	ctxGet, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	res, err := repo.SelectById(ctxGet, 1)
+	/*
+		ctxGet, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		res, err := repo.SelectById(ctxGet, 1)
+		if err != nil {
+			fmt.Print(err)
+		} else {
+			fmt.Print(res)
+		}*/
+
+	ctxDelete, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	err = repo.DropTable(ctxDelete)
 	if err != nil {
 		fmt.Print(err)
-	} else {
-		fmt.Print(res)
 	}
 
 	fmt.Println("ended")
