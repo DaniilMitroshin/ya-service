@@ -12,3 +12,10 @@ migrate-down:
 
 migrate-new: 
 	migrate create -ext sql -dir migrations -seq ${name}
+migrate-force:
+	migrate -path migrations -database "$(CONN_STRING)" force $(version)
+
+migrate-version:
+	migrate -path migrations -database "$(CONN_STRING)" version
+
+.PHONY: run migrate-up migrate-down migrate-new migrate-force migrate-version
