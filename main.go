@@ -1,7 +1,9 @@
 package main
 
 import (
+	"Vservice/internal/db"
 	"Vservice/internal/repository"
+	"Vservice/internal/shared"
 	"context"
 	"fmt"
 	"os"
@@ -58,8 +60,13 @@ func main() {
 			fmt.Print(res)
 		}*/
 
-	ctxDelete, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	err = repo.DropTable(ctxDelete)
+	ctxInsert, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	_, err = repo.InsertBook(ctxInsert, db.InsertBookParams{
+		Title:    shared.Ptr("newBook1"),
+		Author:   shared.Ptr("NewAuthor1"),
+		NumPages: nil,
+		Rating:   shared.Ptr(4.25),
+	})
 	if err != nil {
 		fmt.Print(err)
 	}

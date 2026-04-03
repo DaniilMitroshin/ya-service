@@ -1,8 +1,11 @@
 package repository
 
 import (
-	"Vservice/internal/domain"
-	"Vservice/internal/repository/dbmodel"
+	"errors"
+
+	//"Vservice/internal/repository/dbmodel"
+	"Vservice/internal/db"
+
 	"context"
 
 	//"github.com/jackc/pgx/v5/pgtype"
@@ -10,15 +13,45 @@ import (
 )
 
 type Repo struct {
+	q    *db.Queries
 	pool *pgxpool.Pool
 }
 
 func NewRepo(p *pgxpool.Pool) *Repo {
 	return &Repo{
+		q:    db.New(p),
 		pool: p,
 	}
 }
 
+func (r *Repo) InsertBook(ctx context.Context, InsertBookParams db.InsertBookParams) (db.Book, error) {
+	return r.q.InsertBook(ctx, InsertBookParams)
+}
+
+func (r *Repo) ListAllBooks(ctx context.Context) ([]db.Book, error) {
+	return r.q.ListAllBooks(ctx)
+}
+
+func (r *Repo) ListBooks(ctx context.Context, start, end int) ([]db.Book, error) {
+	return r.q.ListBooks(ctx, db.ListBooksParams{ID: int64(start), ID_2: int64(end)})
+}
+
+func (r *Repo) FullUpdateBook(ctx context.Context, params db.FullUpdateBookParams) (int64, error) {
+	return r.q.FullUpdateBook(ctx, params)
+}
+
+func (r *Repo) DeleteBook(ctx context.Context, id int64) error {
+	res, err := r.q.DeleteBook(ctx, id)
+	if err != nil {
+		return err
+	}
+	if res == 0 {
+		return errors.New("Not found")
+	}
+	return nil
+}
+
+/*
 func (r *Repo) CreateTable(ctx context.Context) error {
 
 	query := `
@@ -27,7 +60,7 @@ func (r *Repo) CreateTable(ctx context.Context) error {
 		title text,
 		author text,
 		num_pages integer,
-		rating double precision 
+		rating double precision
 		);
 	`
 	_, err := r.pool.Exec(ctx, query)
@@ -166,3 +199,4 @@ func (r *Repo) UpdateData_tx(ctx context.Context, bookUpdateParams dbmodel.BookU
 	}
 	return nil
 }
+*/

@@ -26,3 +26,4 @@ UPDATE books
 SET title = $2, author = $3, num_pages = $4, rating = $5
 WHERE id = $1;
 
+

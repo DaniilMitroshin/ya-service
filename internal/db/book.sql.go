@@ -7,8 +7,6 @@ package db
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteBook = `-- name: DeleteBook :execrows
@@ -32,10 +30,10 @@ WHERE id = $1
 
 type FullUpdateBookParams struct {
 	ID       int64
-	Title    pgtype.Text
-	Author   pgtype.Text
-	NumPages pgtype.Int4
-	Rating   pgtype.Float8
+	Title    *string
+	Author   *string
+	NumPages *int32
+	Rating   *float64
 }
 
 func (q *Queries) FullUpdateBook(ctx context.Context, arg FullUpdateBookParams) (int64, error) {
@@ -77,10 +75,10 @@ RETURNING id, title, author, num_pages, rating
 `
 
 type InsertBookParams struct {
-	Title    pgtype.Text
-	Author   pgtype.Text
-	NumPages pgtype.Int4
-	Rating   pgtype.Float8
+	Title    *string
+	Author   *string
+	NumPages *int32
+	Rating   *float64
 }
 
 func (q *Queries) InsertBook(ctx context.Context, arg InsertBookParams) (Book, error) {
