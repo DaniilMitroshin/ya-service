@@ -1,27 +1,56 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
-	//"Vservice/internal/repository/dbmodel"
 	"Vservice/internal/db"
 
-	"context"
-
-	//"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repo struct {
-	q    *db.Queries
-	pool *pgxpool.Pool
+	q        *db.Queries
+	database db.DBTX
 }
 
 func NewRepo(p *pgxpool.Pool) *Repo {
 	return &Repo{
-		q:    db.New(p),
-		pool: p,
+		q:        db.New(p),
+		database: p,
 	}
+}
+
+func (r *Repo) WithTx(ctx context.Context, fn func(r *Repo) error) error {
+
+	if _, ok := r.database.(pgx.Tx); ok {
+		return fn(r)
+	}
+
+	pool, ok := r.database.(*pgxpool.Pool)
+	if !ok {
+		return errors.New("transaction already started")
+	}
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+
+	RepoTX := &Repo{
+		q:        r.q.WithTx(tx),
+		database: tx,
+	}
+
+	err = fn(RepoTX)
+
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (r *Repo) InsertBook(ctx context.Context, InsertBookParams db.InsertBookParams) (db.Book, error) {
@@ -49,6 +78,13 @@ func (r *Repo) DeleteBook(ctx context.Context, id int64) error {
 		return errors.New("Not found")
 	}
 	return nil
+}
+
+/*
+func (r *Repo) DynamicUpdateBook(ctx context.Context, params DynamicBookParams) error{
+	r.pool.Exec(ctx,)
+	//dynamic sql update
+
 }
 
 /*

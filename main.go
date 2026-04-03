@@ -59,16 +59,43 @@ func main() {
 		} else {
 			fmt.Print(res)
 		}*/
-
-	ctxInsert, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	_, err = repo.InsertBook(ctxInsert, db.InsertBookParams{
-		Title:    shared.Ptr("newBook1"),
-		Author:   shared.Ptr("NewAuthor1"),
-		NumPages: nil,
-		Rating:   shared.Ptr(4.25),
+	/*
+		ctxInsert, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		_, err = repo.InsertBook(ctxInsert, db.InsertBookParams{
+			Title:    shared.Ptr("newBook1"),
+			Author:   shared.Ptr("NewAuthor1"),
+			NumPages: nil,
+			Rating:   shared.Ptr(4.25),
+		})
+		if err != nil {
+			fmt.Print(err)
+		}
+	*/
+	ctxTransaction, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	err = repo.WithTx(ctxTransaction, func(r *repository.Repo) error {
+		_, err := r.InsertBook(ctxTransaction, db.InsertBookParams{
+			Title:    shared.Ptr("newBook2"),
+			Author:   shared.Ptr("NewAuthor2"),
+			NumPages: nil,
+			Rating:   shared.Ptr(2.25),
+		})
+		if err != nil {
+			return err
+		}
+		_, err = r.InsertBook(ctxTransaction, db.InsertBookParams{
+			Title:    shared.Ptr("newBook3"),
+			Author:   shared.Ptr("NewAuthor3"),
+			NumPages: shared.Ptr(int32(250)),
+			Rating:   nil,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
-		fmt.Print(err)
+		fmt.Println(err)
 	}
 
 	fmt.Println("ended")
